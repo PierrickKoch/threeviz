@@ -12,7 +12,7 @@ body {
     text-align: center;
     font-weight: bold;
 
-    background-color: #fff;
+    background-color: #555;
     margin: 0px;
     overflow: hidden;
 }
@@ -42,20 +42,19 @@ a {
 
 <script src="js/three.min.js"></script>
 
+<script src="js/ShaderTerrain.js"></script>
+
 <script src="js/TrackballControls.js"></script>
 
 <script src="js/Detector.js"></script>
 <script src="js/stats.min.js"></script>
-
-<script src="js/ShaderTerrain.js"></script>
+<script src="js/dat.gui.min.js"></script>
 
 <script>
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var container, stats;
-
-var camera, controls, scene, renderer;
+var camera, controls, scene, renderer, stats;
 
 init();
 animate();
@@ -67,7 +66,6 @@ function terrain() {
 
     // load two other textures we'll use to make the map look more real
     var detailTexture = THREE.ImageUtils.loadTexture("assets/bg.jpg");
-
 
     // the following configuration defines how the terrain is rendered
     var terrainShader = THREE.ShaderTerrain[ "terrain" ];
@@ -119,7 +117,7 @@ function terrain() {
     geometryTerrain.computeTangents();
 
     // create a 3D object to add
-    terrain = new THREE.Mesh(geometryTerrain, material);
+    var terrain = new THREE.Mesh(geometryTerrain, material);
     terrain.position.set(0, -125, 0);
     terrain.rotation.x = -Math.PI / 2;
 
@@ -128,68 +126,53 @@ function terrain() {
 
 function init() {
     // camera
-
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
-                                         window.innerHeight, 1, 1000);
+                                         window.innerHeight, 1, 10000);
     camera.position.z = 500;
 
-    // control
-
-    controls = new THREE.TrackballControls( camera );
-
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-
-    controls.noZoom = false;
-    controls.noPan = false;
-
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-
-    controls.keys = [ 65, 83, 68 ];
-
-    controls.addEventListener( 'change', render );
-
     // world
-
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
-
+    scene.fog = new THREE.FogExp2( 0x555555, 0.002 );
 
     // terrain
-
-    scene.add(terrain())
-
+    scene.add( terrain() )
 
     // lights
-
-    light = new THREE.PointLight(0xFFFFFF);
+    var light = new THREE.PointLight(0xffffff);
     scene.add(light);
-    light.position.x = 1000;
-    light.position.y = 2500;
-    light.position.z = 3000;
-    light.intensity = 8.6;
-
+    light.position.x = 1;
+    light.position.y = 5000;
+    light.position.z = 1;
+    light.intensity = 9;
 
     // renderer
-
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor( scene.fog.color, 1 );
     renderer.setSize( window.innerWidth, window.innerHeight );
 
-    container = document.getElementById( 'container' );
+    // control
+    controls = new THREE.TrackballControls( camera, renderer.domElement );
+
+    var container = document.getElementById( 'container' );
     container.appendChild( renderer.domElement );
 
+    // stats
     stats = new Stats();
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     stats.domElement.style.zIndex = 100;
     container.appendChild( stats.domElement );
 
-    //
-
+    // resize
     window.addEventListener( 'resize', onWindowResize, false );
+
+    // dat
+    var gui = new dat.GUI();
+    gui.add( light.position, 'x', 1, 10000, 1.0 );
+    gui.add( light.position, 'y', 1, 10000, 1.0 );
+    gui.add( light.position, 'z', 1, 10000, 1.0 );
+    gui.add( light, 'intensity', 0, 800, 0.1 ).name( 'i' );
+    gui.close();
 
 }
 
@@ -202,21 +185,20 @@ function onWindowResize() {
 
     controls.handleResize();
 
-    render();
-
 }
 
 function animate() {
 
     requestAnimationFrame( animate );
-    controls.update();
+    render();
+    stats.update();
 
 }
 
 function render() {
 
     renderer.render( scene, camera );
-    stats.update();
+    controls.update();
 
 }
 
