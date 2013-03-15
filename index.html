@@ -56,6 +56,8 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var camera, controls, scene, renderer, stats;
 
+var camera2, atrv;
+
 init();
 animate();
 
@@ -153,6 +155,32 @@ function init() {
     renderer.setClearColor( scene.fog.color, 1 );
     renderer.setSize( window.innerWidth, window.innerHeight );
 
+    // atrv
+    var atrv = new THREE.Object3D();
+    var loader = new THREE.JSONLoader();
+    loader.load( 'js/data/atrv.js' , function ( geometry, materials ) {
+        var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
+        mesh.scale.set(150, 150, 150);
+        atrv.add( mesh );
+    });
+    camera2 = new THREE.PerspectiveCamera( 60, window.innerWidth /
+            window.innerHeight, 1, 10000 );
+    // look in +X
+    camera2.rotation.y = -1.57;
+    atrv.add( camera2 );
+    scene.add( atrv );
+    window.addEventListener( 'keydown', function ( event ) {
+        switch ( event.keyCode ) {
+        case 38: /*up*/
+            atrv.position.x += 1;
+            break;
+        case 40: /*down*/
+            atrv.position.x -= 1;
+            break;
+        }
+    }, false );
+
+
     // camera
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
             window.innerHeight, 1, 10000);
@@ -187,9 +215,6 @@ function init() {
 
 function onWindowResize() {
 
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
     renderer.setSize( window.innerWidth, window.innerHeight );
     controls.handleResize();
 
@@ -205,8 +230,25 @@ function animate() {
 
 function render() {
 
-    renderer.render( scene, camera );
+    subrender(camera, 0, 0, 0.5, 1);
+    subrender(camera2, 0.5, 0, 0.5, 1);
     controls.update();
+
+}
+
+function subrender(cam, rleft, rbottom, rwidth, rheight) {
+
+    var left   = Math.floor( window.innerWidth  * rleft );
+    var bottom = Math.floor( window.innerHeight * rbottom );
+    var width  = Math.floor( window.innerWidth  * rwidth );
+    var height = Math.floor( window.innerHeight * rheight );
+    renderer.setViewport( left, bottom, width, height );
+    renderer.setScissor( left, bottom, width, height );
+    renderer.enableScissorTest ( true );
+    cam.aspect = width / height;
+    cam.updateProjectionMatrix();
+
+    renderer.render( scene, cam );
 
 }
 
