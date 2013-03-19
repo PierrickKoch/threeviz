@@ -110,14 +110,14 @@ function terrain() {
         fog:false
     });
 
-    // we use a plain to render as terrain
-    var geometryTerrain = new THREE.PlaneGeometry(2000, 4000, 256, 256);
-    geometryTerrain.computeFaceNormals();
-    geometryTerrain.computeVertexNormals();
-    geometryTerrain.computeTangents();
+    // we use a plane to render as terrain
+    var geometry = new THREE.PlaneGeometry(2000, 4000, 256, 256);
+    geometry.computeFaceNormals();
+    geometry.computeVertexNormals();
+    geometry.computeTangents();
 
     // create a 3D object to add
-    var terrain = new THREE.Mesh(geometryTerrain, material);
+    var terrain = new THREE.Mesh(geometry, material);
     terrain.position.set(0, -125, 0);
     terrain.rotation.x = -Math.PI / 2;
 
@@ -125,10 +125,6 @@ function terrain() {
 }
 
 function init() {
-    // camera
-    camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
-                                         window.innerHeight, 1, 10000);
-    camera.position.z = 500;
 
     // world
     scene = new THREE.Scene();
@@ -153,13 +149,19 @@ function init() {
     light.intensity = 9;
 
     // renderer
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setClearColor( scene.fog.color, 1 );
     renderer.setSize( window.innerWidth, window.innerHeight );
+
+    // camera
+    camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
+            window.innerHeight, 1, 10000);
+    camera.position.z = 500;
 
     // control
     controls = new THREE.TrackballControls( camera, renderer.domElement );
 
+    // add the renderer to the document
     var container = document.getElementById( 'container' );
     container.appendChild( renderer.domElement );
 
@@ -189,7 +191,6 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight );
-
     controls.handleResize();
 
 }
