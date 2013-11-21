@@ -59,69 +59,54 @@ var camera, controls, scene, renderer, stats;
 init();
 animate();
 
-function terrain() {
-
-    // load the heightmap we created as a texture
-    var texture = THREE.ImageUtils.loadTexture('assets/combined.png');
-
-    // load two other textures we'll use to make the map look more real
-    var detailTexture = THREE.ImageUtils.loadTexture("assets/bg.jpg");
+function terrain(texture_heightmap, diffuse) {
+    // if no texture given, use the heightmap
+    var texture_diffuse = typeof diffuse === 'undefined' ? texture_heightmap :
+        THREE.ImageUtils.loadTexture(diffuse);
 
     // the following configuration defines how the terrain is rendered
     var terrainShader = THREE.ShaderTerrain[ "terrain" ];
     var uniformsTerrain = THREE.UniformsUtils.clone(terrainShader.uniforms);
 
-    // how to treat abd scale the normal texture
-    uniformsTerrain[ "tNormal" ].value = detailTexture;
-    uniformsTerrain[ "uNormalScale" ].value = 1;
-
     // the displacement determines the height of a vector, mapped to
     // the heightmap
-    uniformsTerrain[ "tDisplacement" ].value = texture;
+    uniformsTerrain[ "tDisplacement" ].value = texture_heightmap;
     uniformsTerrain[ "uDisplacementScale" ].value = 100;
 
     // the following textures can be use to finetune how
     // the map is shown. These are good defaults for simple
     // rendering
-    uniformsTerrain[ "tDiffuse1" ].value = detailTexture;
-    uniformsTerrain[ "tDetail" ].value = detailTexture;
+    uniformsTerrain[ "tDiffuse1" ].value = texture_diffuse;
     uniformsTerrain[ "enableDiffuse1" ].value = true;
-    uniformsTerrain[ "enableDiffuse2" ].value = true;
-    uniformsTerrain[ "enableSpecular" ].value = true;
-
-    // diffuse is based on the light reflection
-    uniformsTerrain[ "uDiffuseColor" ].value.setHex(0xcccccc);
-    uniformsTerrain[ "uSpecularColor" ].value.setHex(0xff0000);
-    // is the base color of the terrain
-    uniformsTerrain[ "uAmbientColor" ].value.setHex(0x0000cc);
-
-    // how shiny is the terrain
-    uniformsTerrain[ "uShininess" ].value = 3;
-
-    // handles light reflection
-    uniformsTerrain[ "uRepeatOverlay" ].value.set(6, 6);
 
     // configure the material that reflects our terrain
     var material = new THREE.ShaderMaterial({
-        uniforms:uniformsTerrain,
-        vertexShader:terrainShader.vertexShader,
-        fragmentShader:terrainShader.fragmentShader,
-        lights:true,
-        fog:false
+        uniforms:       uniformsTerrain,
+        vertexShader:   terrainShader.vertexShader,
+        fragmentShader: terrainShader.fragmentShader,
+        lights:         true,
+        fog:            false
     });
 
-    // we use a plane to render as terrain
-    var geometry = new THREE.PlaneGeometry(2000, 4000, 256, 256);
+    // we use a plane to render our terrain
+    var geometry = new THREE.PlaneGeometry(texture_heightmap.image.width,
+        texture_heightmap.image.height, 256, 256);
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
     geometry.computeTangents();
 
-    // create a 3D object to add
-    var terrain = new THREE.Mesh(geometry, material);
-    terrain.position.set(0, -125, 0);
-    terrain.rotation.x = -Math.PI / 2;
+    // create a 3D object to add to the scene
+    return new THREE.Mesh(geometry, material);
+}
 
-    return terrain;
+function load_terrain(heightmap, diffuse) {
+    // load the heightmap as a texture
+    // add a callback when the image is loaded to add it to the scene
+    // allowing us to get image.{width,height} for the geometry
+    var texture_heightmap = THREE.ImageUtils.loadTexture(heightmap, undefined,
+        function() {
+            scene.add( terrain(texture_heightmap, diffuse) );
+        });
 }
 
 function init() {
@@ -131,22 +116,19 @@ function init() {
     scene.fog = new THREE.FogExp2( 0x555555 );
 
     // terrain
-    scene.add( terrain() )
+    load_terrain('assets/heightmap.jpg', 'assets/diffuse.jpg');
 
     // grid
     var grid = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000, 50, 50 ),
             new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } ) );
-    grid.rotation.x = -Math.PI / 2;
     grid.position.set(0, -150, 0);
     scene.add( grid );
 
     // lights
     var light = new THREE.PointLight(0xffffff);
     scene.add(light);
-    light.position.x = 1;
-    light.position.y = 5000;
-    light.position.z = 1;
-    light.intensity = 9;
+    light.position.z = 300;
+    light.intensity = 1.5;
 
     // renderer
     renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -156,7 +138,7 @@ function init() {
     // camera
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
             window.innerHeight, 1, 10000);
-    camera.position.z = 500;
+    camera.position.z = 1000;
 
     // control
     controls = new THREE.TrackballControls( camera, renderer.domElement );
@@ -177,10 +159,10 @@ function init() {
 
     // dat
     var gui = new dat.GUI();
-    gui.add( light.position, 'x', 1, 10000, 1.0 );
-    gui.add( light.position, 'y', 1, 10000, 1.0 );
-    gui.add( light.position, 'z', 1, 10000, 1.0 );
-    gui.add( light, 'intensity', 0, 800, 0.1 ).name( 'i' );
+    gui.add( light.position, 'x', -100, 100, 1.0 );
+    gui.add( light.position, 'y', -100, 100, 1.0 );
+    gui.add( light.position, 'z', 0, 1000, 1.0 );
+    gui.add( light, 'intensity', 0, 20, 0.1 ).name( 'i' );
     gui.close();
 
 }
