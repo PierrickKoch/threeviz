@@ -54,29 +54,25 @@ a {
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var camera, controls, scene, renderer, stats;
+var camera, controls, scene, terrain, heightmap, renderer, stats, update;
 
 init();
 animate();
 
-function terrain(texture_heightmap, diffuse) {
-    // if no texture given, use the heightmap
-    var texture_diffuse = typeof diffuse === 'undefined' ? texture_heightmap :
-        THREE.ImageUtils.loadTexture(diffuse);
-
+function build_terrain(tex) {
     // the following configuration defines how the terrain is rendered
     var terrainShader = THREE.ShaderTerrain[ "terrain" ];
     var uniformsTerrain = THREE.UniformsUtils.clone(terrainShader.uniforms);
 
     // the displacement determines the height of a vector, mapped to
     // the heightmap
-    uniformsTerrain[ "tDisplacement" ].value = texture_heightmap;
+    uniformsTerrain[ "tDisplacement" ].value = tex;
     uniformsTerrain[ "uDisplacementScale" ].value = 100;
 
     // the following textures can be use to finetune how
     // the map is shown. These are good defaults for simple
     // rendering
-    uniformsTerrain[ "tDiffuse1" ].value = texture_diffuse;
+    uniformsTerrain[ "tDiffuse1" ].value = tex;
     uniformsTerrain[ "enableDiffuse1" ].value = true;
 
     // configure the material that reflects our terrain
@@ -89,8 +85,7 @@ function terrain(texture_heightmap, diffuse) {
     });
 
     // we use a plane to render our terrain
-    var geometry = new THREE.PlaneGeometry(texture_heightmap.image.width,
-        texture_heightmap.image.height, 256, 256);
+    var geometry = new THREE.PlaneGeometry(tex.image.width, tex.image.height, 256, 256);
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
     geometry.computeTangents();
@@ -99,14 +94,28 @@ function terrain(texture_heightmap, diffuse) {
     return new THREE.Mesh(geometry, material);
 }
 
-function load_terrain(heightmap, diffuse) {
+function update_terrain() {
+    var tex = THREE.ImageUtils.loadTexture(
+        heightmap + "?" + Number(new Date), undefined,
+        function() {
+            terrain.material.uniforms.tDisplacement.value = tex;
+            terrain.material.uniforms.tDiffuse1.value = tex;
+            console.log("texture reloaded");
+            if (update) window.setTimeout(update_terrain, 1000);
+        } );
+}
+
+function load_terrain(url) {
+    heightmap = url;
     // load the heightmap as a texture
     // add a callback when the image is loaded to add it to the scene
     // allowing us to get image.{width,height} for the geometry
-    var texture_heightmap = THREE.ImageUtils.loadTexture(heightmap, undefined,
+    var tex = THREE.ImageUtils.loadTexture(
+        heightmap, undefined,
         function() {
-            scene.add( terrain(texture_heightmap, diffuse) );
-        });
+            terrain = build_terrain( tex );
+            scene.add( terrain );
+        } );
 }
 
 function init() {
@@ -116,7 +125,7 @@ function init() {
     scene.fog = new THREE.FogExp2( 0x555555 );
 
     // terrain
-    load_terrain('assets/heightmap.jpg', 'assets/diffuse.jpg');
+    load_terrain('assets/atlaas.png');
 
     // grid
     var grid = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000, 50, 50 ),
@@ -156,6 +165,7 @@ function init() {
 
     // resize
     window.addEventListener( 'resize', resize, false );
+    document.addEventListener( 'keypress', keypress, false );
 
     // dat
     var gui = new dat.GUI();
@@ -190,6 +200,14 @@ function render() {
     renderer.render( scene, camera );
     controls.update();
 
+}
+
+function keypress(evt) {
+    // console.log(evt);
+    if (evt.keyCode == 32) { /* == SPACE */
+        update = !update;
+        if (update) update_terrain();
+    }
 }
 
 </script>
