@@ -155,7 +155,7 @@ function init() {
     container.appendChild( stats.domElement );
 
     // resize
-    window.addEventListener( 'resize', onWindowResize, false );
+    window.addEventListener( 'resize', resize, false );
 
     // dat
     var gui = new dat.GUI();
@@ -167,7 +167,7 @@ function init() {
 
 }
 
-function onWindowResize() {
+function resize() {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
