@@ -149,12 +149,12 @@ function init() {
             window.innerHeight, 1, 10000);
     camera.position.z = 1000;
 
-    // control
-    controls = new THREE.TrackballControls( camera, renderer.domElement );
-
     // add the renderer to the document
     var container = document.getElementById( 'container' );
     container.appendChild( renderer.domElement );
+
+    // control
+    controls = new THREE.TrackballControls( camera, renderer.domElement );
 
     // stats
     stats = new Stats();
