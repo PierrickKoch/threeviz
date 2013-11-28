@@ -54,7 +54,7 @@ a {
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var camera, controls, scene, terrain, heightmap, renderer, stats, update;
+var camera, controls, scene, terrain, heightmap, renderer, stats, update, robot;
 
 init();
 animate();
@@ -101,7 +101,7 @@ function update_terrain() {
             terrain.material.uniforms.tDisplacement.value = tex;
             terrain.material.uniforms.tDiffuse1.value = tex;
             console.log("texture reloaded");
-            if (update) window.setTimeout(update_terrain, 1000);
+            if (update) window.setTimeout(update_terrain, 2000);
         } );
 }
 
@@ -143,6 +143,17 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setClearColor( scene.fog.color, 1 );
     renderer.setSize( window.innerWidth, window.innerHeight );
+
+    // atrv
+    robot = new THREE.Object3D();
+    var loader = new THREE.JSONLoader();
+    loader.load( 'assets/atrv.js' , function ( geometry, materials ) {
+        var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
+        mesh.scale.set(10, 10, 10);
+        mesh.rotateX( Math.PI / 2 )
+        robot.add( mesh );
+    });
+    scene.add( robot );
 
     // camera
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth /
@@ -206,8 +217,35 @@ function keypress(evt) {
     // console.log(evt);
     if (evt.keyCode == 32) { /* == SPACE */
         update = !update;
-        if (update) update_terrain();
+        if (update) {
+            update_terrain();
+            update_pose();
+        }
     }
+}
+
+function process(data) {
+    robot.position.x = data.x;
+    robot.position.y = data.y;
+    robot.rotation.z = data.yaw;
+}
+
+// get pom pose from picoweb http://localhost:8080/pom?get=Pos
+// https://developer.mozilla.org/en-US/docs/AJAX
+// https://developer.mozilla.org/en-US/docs/JSON
+function update_pose() {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        try {
+            var data = JSON.parse(this.response);
+            process(data);
+        } catch (err) {
+            console.log("[error] parsing response: " + err);
+        }
+        if (update) window.setTimeout(update_pose, 500);
+    };
+    xhr.open("get", "pose.json", true);
+    xhr.send();
 }
 
 </script>
