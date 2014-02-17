@@ -54,7 +54,7 @@ a {
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var camera, controls, scene, terrain, heightmap, renderer, stats, update;
+var camera, controls, scene, terrain, heightmap, renderer, stats, update, gui;
 
 init();
 animate();
@@ -67,7 +67,7 @@ function build_terrain(tex) {
     // the displacement determines the height of a vector, mapped to
     // the heightmap
     uniformsTerrain[ "tDisplacement" ].value = tex;
-    uniformsTerrain[ "uDisplacementScale" ].value = 100;
+    uniformsTerrain[ "uDisplacementScale" ].value = 30;
 
     // the following textures can be use to finetune how
     // the map is shown. These are good defaults for simple
@@ -115,6 +115,8 @@ function load_terrain(url) {
         function() {
             terrain = build_terrain( tex );
             scene.add( terrain );
+            dscale = terrain.material.uniforms.uDisplacementScale
+            gui.add( dscale, 'value', 0, 200, 0.1 ).name( 'h' );
         } );
 }
 
@@ -125,7 +127,7 @@ function init() {
     scene.fog = new THREE.FogExp2( 0x555555 );
 
     // terrain
-    load_terrain('assets/atlaas.png');
+    load_terrain('assets/atlaas.jpg');
 
     // grid
     var grid = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000, 50, 50 ),
@@ -168,7 +170,7 @@ function init() {
     document.addEventListener( 'keypress', keypress, false );
 
     // dat
-    var gui = new dat.GUI();
+    gui = new dat.GUI();
     gui.add( light.position, 'x', -100, 100, 1.0 );
     gui.add( light.position, 'y', -100, 100, 1.0 );
     gui.add( light.position, 'z', 0, 1000, 1.0 );
