@@ -17,7 +17,7 @@ body {
     overflow: hidden;
 }
 
-#info {
+#update {
     color: #aaa;
     font-size: 16px;
     font-weight: bold;
@@ -35,9 +35,8 @@ a {
 
 <body>
 <div id="container"></div>
-<div id="info">
-    <a href="http://threejs.org" target="_blank">three.js</a> - 
-    <a href="http://www.smartjava.org/content/threejs-render-real-world-terrain-heightmap-using-open-data" target="_blank">terrain</a> with Trackball Controls
+<div id="update">
+    update: off
 </div>
 
 <script src="js/three.min.js"></script>
@@ -61,25 +60,24 @@ animate();
 
 function build_terrain(tex) {
     // the following configuration defines how the terrain is rendered
-    var terrainShader = THREE.ShaderTerrain[ "terrain" ];
-    var uniformsTerrain = THREE.UniformsUtils.clone(terrainShader.uniforms);
+    var shader = THREE.ShaderTerrain[ "terrain" ];
 
     // the displacement determines the height of a vector, mapped to
     // the heightmap
-    uniformsTerrain[ "tDisplacement" ].value = tex;
-    uniformsTerrain[ "uDisplacementScale" ].value = 30;
+    shader.uniforms[ "tDisplacement" ].value = tex;
+    shader.uniforms[ "uDisplacementScale" ].value = 30;
 
     // the following textures can be use to finetune how
     // the map is shown. These are good defaults for simple
     // rendering
-    uniformsTerrain[ "tDiffuse1" ].value = tex;
-    uniformsTerrain[ "enableDiffuse1" ].value = true;
+    shader.uniforms[ "tDiffuse1" ].value = tex;
+    shader.uniforms[ "enableDiffuse1" ].value = true;
 
     // configure the material that reflects our terrain
     var material = new THREE.ShaderMaterial({
-        uniforms:       uniformsTerrain,
-        vertexShader:   terrainShader.vertexShader,
-        fragmentShader: terrainShader.fragmentShader,
+        uniforms:       shader.uniforms,
+        vertexShader:   shader.vertexShader,
+        fragmentShader: shader.fragmentShader,
         lights:         true,
         fog:            false
     });
@@ -118,6 +116,18 @@ function load_terrain(url) {
             dscale = terrain.material.uniforms.uDisplacementScale
             gui.add( dscale, 'value', 0, 200, 0.1 ).name( 'h' );
         } );
+}
+
+function switch_update(evt) {
+    elt = typeof evt !== 'undefined' ? evt.target :
+        document.getElementById( 'update' );
+    update = !update;
+    if (update) {
+        elt.innerHTML = "update: on";
+        update_terrain();
+    } else {
+        elt.innerHTML = "update: off";
+    }
 }
 
 function init() {
@@ -177,6 +187,7 @@ function init() {
     gui.add( light, 'intensity', 0, 20, 0.1 ).name( 'i' );
     gui.close();
 
+    document.getElementById( 'update' ).onclick = switch_update;
 }
 
 function resize() {
@@ -207,8 +218,7 @@ function render() {
 function keypress(evt) {
     // console.log(evt);
     if (evt.keyCode == 32) { /* == SPACE */
-        update = !update;
-        if (update) update_terrain();
+        switch_update();
     }
 }
 
