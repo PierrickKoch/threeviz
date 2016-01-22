@@ -67,12 +67,6 @@ function build_terrain(tex) {
     shader.uniforms[ "tDisplacement" ].value = tex;
     shader.uniforms[ "uDisplacementScale" ].value = 30;
 
-    // the following textures can be use to finetune how
-    // the map is shown. These are good defaults for simple
-    // rendering
-    shader.uniforms[ "tDiffuse1" ].value = tex;
-    shader.uniforms[ "enableDiffuse1" ].value = true;
-
     // configure the material that reflects our terrain
     var material = new THREE.ShaderMaterial({
         uniforms:       shader.uniforms,
