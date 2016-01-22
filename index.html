@@ -77,7 +77,7 @@ function build_terrain(tex) {
     });
 
     // we use a plane to render our terrain
-    var geometry = new THREE.PlaneGeometry(tex.image.width, tex.image.height, 256, 256);
+    var geometry = new THREE.PlaneGeometry(tex.image.width, tex.image.height, 128, 128);
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
     geometry.computeTangents();
