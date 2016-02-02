@@ -116,6 +116,11 @@ THREE.ShaderTerrain = {
 			THREE.ShaderChunk[ "shadowmap_pars_fragment" ],
 			THREE.ShaderChunk[ "fog_pars_fragment" ],
 
+			// summer colormap, TODO add Viridis from bids.github.io/colormap
+			"vec4 colormap(float x) {",
+				"return vec4(clamp(x, 0.0, 1.0), clamp(0.5 * x + 0.5, 0.0, 1.0), 0.4, 1.0);",
+			"}",
+
 			"void main() {",
 
 				"vec3 outgoingLight = vec3( 0.0 );",	// outgoing light does not have an alpha, the surface does
@@ -147,6 +152,10 @@ THREE.ShaderTerrain = {
 				"} else if( enableDiffuse2 ) {",
 
 					"diffuseColor *= texture2D( tDiffuse2, uvOverlay );",
+
+				"} else {",
+
+					"diffuseColor *= colormap( texture2D( tDisplacement, uvBase ).x );",
 
 				"}",
 
