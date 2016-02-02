@@ -65,7 +65,7 @@ function build_terrain(tex) {
     // the displacement determines the height of a vector, mapped to
     // the heightmap
     shader.uniforms[ "tDisplacement" ].value = tex;
-    shader.uniforms[ "uDisplacementScale" ].value = 30;
+    shader.uniforms[ "uDisplacementScale" ].value = 300;
 
     // configure the material that reflects our terrain
     var material = new THREE.ShaderMaterial({
@@ -108,7 +108,7 @@ function load_terrain(url) {
             terrain = build_terrain( tex );
             scene.add( terrain );
             dscale = terrain.material.uniforms.uDisplacementScale
-            gui.add( dscale, 'value', 0, 200, 0.1 ).name( 'h' );
+            gui.add( dscale, 'value', 0, 500, 0.1 ).name( 'h' );
         } );
 }
 
