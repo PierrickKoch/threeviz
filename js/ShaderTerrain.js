@@ -25,6 +25,7 @@ THREE.ShaderTerrain = {
 
 			"enableDiffuse1"  : { type: "i", value: 0 },
 			"enableDiffuse2"  : { type: "i", value: 0 },
+			"enableColormap"  : { type: "i", value: 0 },
 			"enableSpecular"  : { type: "i", value: 0 },
 			"enableReflection": { type: "i", value: 0 },
 
@@ -65,6 +66,7 @@ THREE.ShaderTerrain = {
 
 			"uniform bool enableDiffuse1;",
 			"uniform bool enableDiffuse2;",
+			"uniform bool enableColormap;",
 			"uniform bool enableSpecular;",
 
 			"uniform sampler2D tDiffuse1;",
@@ -156,10 +158,13 @@ THREE.ShaderTerrain = {
 
 					"gl_FragColor = gl_FragColor * texture2D( tDiffuse2, uvOverlay );",
 
+				"} else if( enableColormap ) {",
+
+					"gl_FragColor = gl_FragColor * colormap( texture2D( tDisplacement, uvBase ).x );",
+
 				"} else {",
 
-					//"gl_FragColor = gl_FragColor * texture2D( tDisplacement, uvBase );",
-					"gl_FragColor = gl_FragColor * colormap( texture2D( tDisplacement, uvBase ).x );",
+					"gl_FragColor = gl_FragColor * texture2D( tDisplacement, uvBase );",
 
 				"}",
 
