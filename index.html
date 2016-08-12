@@ -107,8 +107,10 @@ function load_terrain(url) {
         function() {
             terrain = build_terrain( tex );
             scene.add( terrain );
-            dscale = terrain.material.uniforms.uDisplacementScale
+            dscale = terrain.material.uniforms.uDisplacementScale;
+            encmap = terrain.material.uniforms.enableColormap;
             gui.add( dscale, 'value', 0, 500, 0.1 ).name( 'h' );
+            gui.add( encmap, 'value').name( 'colormap' ); // TODO bool ?
         } );
 }
 
