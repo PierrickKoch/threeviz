@@ -108,9 +108,13 @@ function load_terrain(url) {
             terrain = build_terrain( tex );
             scene.add( terrain );
             dscale = terrain.material.uniforms.uDisplacementScale;
-            encmap = terrain.material.uniforms.enableColormap;
             gui.add( dscale, 'value', 0, 500, 0.1 ).name( 'h' );
-            gui.add( encmap, 'value').name( 'colormap' ); // TODO bool ?
+            terrain.bColormap = false;
+            terrain.material.uniforms.enableColormap.value = 0;
+            var ctl = gui.add( terrain, 'bColormap').name( 'colormap' ).listen();
+            ctl.onChange(function(value){
+                terrain.material.uniforms.enableColormap.value = value;
+            });
         } );
 }
 
